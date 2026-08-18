@@ -1,0 +1,27 @@
+# SECRETS - these must never enter the build context, let alone the image.
+# They are bind-mounted at runtime instead (see docker-compose.yml).
+credentials.json
+token.json
+token_calendar.json
+tokens/
+*.token.json
+.env
+
+# Private data
+notes/
+session/
+sessions/
+
+# Local junk
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.gitignore
+labo/
+assistant_.py
+Dockerfile
+docker-compose.yml
+.dockerignore
