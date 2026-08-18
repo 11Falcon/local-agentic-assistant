@@ -62,82 +62,13 @@ https://www.anthropic.com/engineering/building-effective-agents
 - Why must `ToolRegistry.execute` return an error *string* instead of raising?
 - Why is `eval()` on tool arguments dangerous even though "it's just a calculator"?
 
-## General requirements
-
-- Files live in `0x02-tool_calling/`.
-- `ToolRegistry.execute` **never raises** — it returns an error string instead.
-- Verify: `python checker.py 0x02`
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. Describe a tool (mandatory)
-**File:** `0-tool_schema.py`
+- [`0-tool_schema.py`](0-tool_schema.py) — a JSON Schema the model can call
+- [`1-calculator.py`](1-calculator.py) — an AST-walking evaluator, not `eval()`
+- [`2-registry.py`](2-registry.py) — name → (function, schema), errors returned not raised
+- [`3-tool_loop.py`](3-tool_loop.py) — the full request/execute/feed-back cycle
 
-Write `make_tool_schema(name, description, parameters)` → returns the OpenAI-format
-dict:
-
-```python
-{"type": "function",
- "function": {"name": name, "description": description, "parameters": parameters}}
-```
-
-where `parameters` is a JSON-schema dict like
-`{"type": "object", "properties": {...}, "required": [...]}`.
-
-```powershell
-python checker.py 0x02 0
-```
-
-### 1. A safe calculator tool (mandatory)
-**File:** `1-calculator.py`
-
-Write `calculator(expression)` → evaluates an arithmetic expression string
-(`+ - * / ** %` and parentheses) and returns the numeric result.
-**Forbidden:** `eval()`/`exec()` on the raw string. Parse with
-`ast.parse(expression, mode="eval")` and walk the tree, allowing only numeric
-constants, the arithmetic operators, and unary minus. Anything else (names, calls,
-attributes...) raises `ValueError`.
-
-Also define module-level `TOOL_SCHEMA`: the schema for this tool (name
-`"calculator"`, one required string parameter `expression`).
-
-```powershell
-python checker.py 0x02 1
-```
-
-### 2. The tool registry (mandatory)
-**File:** `2-registry.py`
-
-Write `class ToolRegistry` with:
-- `register(name, fn, schema)` — store a tool
-- `get_schemas()` — list of all schemas (for the `tools=` argument)
-- `execute(name, arguments)` — `arguments` is a **JSON string** (exactly what
-  `tool_call.function.arguments` gives you). Parse it, call `fn(**args)`, return
-  `str(result)`. Unknown tool or any exception from `fn` → return a string starting
-  with `"Error:"` (never raise).
-
-```powershell
-python checker.py 0x02 2
-```
-
-### 3. The tool loop (mandatory)
-**File:** `3-tool_loop.py`
-
-Write `run_with_tools(client, model, messages, registry, max_turns=5)`:
-1. Call `client.chat.completions.create(model=..., messages=..., tools=registry.get_schemas())`.
-2. If the reply message has `tool_calls`: append the assistant message to `messages`,
-   then for **each** tool call execute it via the registry and append
-   `{"role": "tool", "tool_call_id": call.id, "content": result}`. Go to 1.
-3. Otherwise return the reply's text content.
-4. If `max_turns` model calls happen without a final text answer, return a string
-   saying the turn limit was reached.
-
-Bonus (not checked): make `python 3-tool_loop.py` an interactive demo with the real
-model — ask it "what is 391 * 27 + 4?" and watch it call your calculator.
-
-```powershell
-python checker.py 0x02 3
-python checker.py 0x02 --integration
-```
+Verified by [`tests/test_0x02.py`](tests/test_0x02.py) — `python checker.py 0x02`

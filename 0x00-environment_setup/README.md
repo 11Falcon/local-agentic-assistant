@@ -62,92 +62,14 @@ only, to know what "hybrid thinking" means: https://qwenlm.github.io/blog/qwen3/
 - The chat API is stateless — so how does a conversation remember your name?
 - What is a `<think>` block and why must you strip it before parsing a reply?
 
-## Before the tasks
-
-```powershell
-ollama pull qwen3:8b          # or qwen3:4b on smaller hardware (then: setx QWEN_MODEL qwen3:4b)
-ollama run qwen3:8b "Say hi in 5 words"    # sanity check, then /bye
-```
-And complete steps 3–4 of the root README (venv + pip install).
-
-## General requirements
-
-- All files live in this directory (`0x00-environment_setup/`).
-- Every function that calls the model accepts `client=None` and `model=None`
-  parameters; when `None`, build the default Ollama client / read the model tag from
-  the `QWEN_MODEL` env var falling back to `"qwen3:8b"`.
-- Verify with: `python checker.py 0x00` (add `--integration` to also hit the real model).
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. Know your machine (mandatory)
-**File:** `0-check_env.py`
+- [`0-check_env.py`](0-check_env.py) — verifies Python, Ollama and the model tag
+- [`1-hello_qwen.py`](1-hello_qwen.py) — the first completion
+- [`2-chat_loop.py`](2-chat_loop.py) — multi-turn conversation state
+- [`3-streaming.py`](3-streaming.py) — token-by-token output
+- [`4-clean_output.py`](4-clean_output.py) — stripping qwen3's `<think>` blocks
 
-Write a function `check_environment()` that returns a dict:
-
-```python
-{"python_version": "3.11.9",   # platform.python_version()
- "platform": "...",            # platform.system() or sys.platform
- "venv_active": True}          # hint: sys.prefix != sys.base_prefix
-```
-
-Make the file runnable: `python 0-check_env.py` prints the report nicely.
-
-```powershell
-python checker.py 0x00 0
-```
-
-### 1. Hello, Qwen (mandatory)
-**File:** `1-hello_qwen.py`
-
-Write `ask_qwen(prompt, client=None, model=None)` → returns the assistant's reply as
-a string.
-- `client=None` → create `OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")`
-- `model=None` → `os.environ.get("QWEN_MODEL", "qwen3:8b")`
-- Send exactly one user message containing `prompt`; pass `model` to the API call.
-
-```powershell
-python checker.py 0x00 1
-python checker.py 0x00 1 --integration   # talks to your real model
-```
-
-### 2. Build the conversation (mandatory)
-**File:** `2-chat_loop.py`
-
-Write `build_messages(history, user_input, system_prompt="You are a helpful assistant.")`
-→ returns a **new** list (do not mutate `history`):
-`[system message] + history + [new user message]`.
-
-Then write a `main()` REPL: read input, build messages, call the model, print the
-reply, append both turns to history. Try it: `python 2-chat_loop.py` — confirm the
-model remembers your name across turns.
-
-```powershell
-python checker.py 0x00 2
-```
-
-### 3. Streaming (mandatory)
-**File:** `3-streaming.py`
-
-Write a **generator** `stream_qwen(prompt, client=None, model=None)` that calls the
-API with `stream=True` and yields each text chunk (`chunk.choices[0].delta.content`),
-skipping `None` deltas.
-
-```powershell
-python checker.py 0x00 3
-```
-
-### 4. Silence the inner monologue (mandatory)
-**File:** `4-clean_output.py`
-
-Write `strip_thinking(text)` → removes every `<think>...</think>` block (they can span
-multiple lines) and strips leading/trailing whitespace from the result.
-Hint: `re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)`.
-
-You will reuse this in almost every later module.
-
-```powershell
-python checker.py 0x00 4
-```
+Verified by [`tests/test_0x00.py`](tests/test_0x00.py) — `python checker.py 0x00`

@@ -54,71 +54,11 @@ names one-to-one; the two links above are all you need.
 - Reading a channel vs posting to one: which needs a guardrail in the final
   assistant, and why?
 
-## Before the tasks (one time, ~10 minutes)
-
-1. https://api.slack.com/apps → **Create New App** → From scratch → pick your workspace
-   (create a free personal workspace if needed — perfect sandbox).
-2. **OAuth & Permissions** → Bot Token Scopes: `chat:write`, `channels:read`,
-   `channels:history`.
-3. **Install to Workspace** → copy the **Bot User OAuth Token** (`xoxb-...`) into
-   `.env` as `SLACK_BOT_TOKEN`.
-4. In Slack, create `#bot-playground` and `/invite` your bot.
-
-## General requirements
-
-- File: `agents/slack_agent.py`. Client injected as a parameter everywhere below task 0.
-- Verify: `python checker.py 0x06` (offline, fake Slack client provided).
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. The client (mandatory)
-**File:** `agents/slack_agent.py`
+Optional and not implemented in this build — the notes agent took its place
+as the third specialist. The concepts and the checks are here if you want it.
 
-`get_slack_client(token=None)`:
-- `token` given → use it; else read `SLACK_BOT_TOKEN` from the environment
-  (call `dotenv.load_dotenv()` first so `.env` works);
-- neither → raise `ValueError` with a helpful message;
-- returns `slack_sdk.WebClient(token=...)`.
-
-```powershell
-python checker.py 0x06 0
-```
-
-### 1. Post (mandatory)
-**File:** `agents/slack_agent.py`
-
-`post_message(client, channel, text)` → calls `chat_postMessage`, returns the
-message's `ts` (its timestamp-id string).
-
-```powershell
-python checker.py 0x06 1
-```
-
-### 2. Read, in human order (mandatory)
-**File:** `agents/slack_agent.py`
-
-`read_recent(client, channel, limit=10)` → list of `{"user", "text", "ts"}` in
-**chronological order** (oldest first — remember the API gives newest first).
-
-```powershell
-python checker.py 0x06 2
-```
-
-### 3. Slack as tools (mandatory)
-**File:** `agents/slack_agent.py`
-
-`build_slack_registry(client)` → `ToolRegistry` with:
-
-| tool name | parameters | behavior |
-|---|---|---|
-| `post_slack_message` | `channel, text: str` | task 1 → confirmation string with the ts |
-| `read_slack_channel` | `channel: str`, optional `limit: int` | task 2 → readable "user: text" lines |
-
-Try it live (not checked): build an `Agent` with this registry and ask it to
-*"read #bot-playground and post a one-line summary of the discussion"*.
-
-```powershell
-python checker.py 0x06 3
-```
+Verified by [`tests/test_0x0A.py`](tests/test_0x0A.py) — `python checker.py 0x0A`

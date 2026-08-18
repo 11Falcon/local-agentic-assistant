@@ -45,75 +45,12 @@ required reading. (The MCP link above is a post-course idea, not homework.)
 - Trace one request end to end: "what's on my calendar?" — name every hop from
   your keyboard to the Google API and back.
 
-## General requirements
-
-- File: `assistant.py` at the **course root**.
-- Importing it must have **zero side effects** (no OAuth, no model calls) — everything
-  happens in `build_assistant()` / `main()`.
-- Verify: `python checker.py 0x09`
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. The composition root (mandatory)
-**File:** `assistant.py`
+- [`assistant.py`](../assistant.py) — the composition root (`build_assistant`)
+  and the CLI: real services wired in with graceful degradation, the confirmation
+  gate wrapping every write tool, session persistence and compaction
 
-```python
-def build_assistant(client=None, model=None, gmail_service=None,
-                    calendar_service=None, notes_store=None):
-```
-
-- `client`/`model` default to `core.llm.get_client()` / `get_model()`.
-- Build a specialist `Agent` per service **that was provided** (each with its
-  registry from 0x04/0x05/0x06 and a focused system prompt), plus always a
-  `"general"` agent with no tools.
-- Return an `Orchestrator` over `{"gmail": ..., "calendar": ..., "notes": ...,
-  "general": ...}`.
-- *(Bonus)* if you did 0x0A, add a `slack_client=None` parameter and a `"slack"`
-  agent the same way — the checker ignores extra agents.
-
-```powershell
-python checker.py 0x09 0
-```
-
-### 1. End to end (mandatory)
-
-No new code if task 0 is right — this check runs your whole stack on fakes: a
-calendar question must route to the calendar agent, trigger the `list_events` tool
-against the (fake) Calendar API, and produce the model's final answer. If it fails,
-read the pytest output top-down: routing? tool schema? tool execution? Use
-`agent.trace`.
-
-```powershell
-python checker.py 0x09 1
-```
-
-### 2. The product (mandatory — manually graded by you)
-**File:** `assistant.py` — add `main()`
-
-The CLI that makes it real:
-1. Build the assistant with **real** services (wrap each `get_*_service()` in
-   try/except so a missing credential disables that agent instead of crashing).
-2. Load `sessions/last.json` into the general agent's history; save on exit;
-   compact with `summarize_and_compact` when history exceeds ~30 messages.
-3. **Confirmation gate:** before any tool that *changes the outside world* executes —
-   `create_draft`, `create_event` (and `post_slack_message` if you did 0x0A) — print
-   what's about to happen and require the user to type `y`. Read-only tools
-   (`search_email`, `list_events`, `search_notes`) run freely. (Hint: wrap the
-   registry — subclass or decorate `execute` — don't rewrite the agents.)
-4. After each reply, print `[route: <name>]` dimly.
-
-**Your graduation demo — all through chat with your assistant:**
-- [ ] "Summarize my unread emails from this week"
-- [ ] "Do I have anything tomorrow morning? Find me a free hour otherwise"
-- [ ] "Draft a reply to Alice's meeting request accepting Tuesday" → confirm → check Drafts in Gmail
-- [ ] "What did I write in my notes about the agent loop?" → answered from your own documents
-
-```powershell
-python checker.py 0x09 2
-python checker.py all          # the full course, green
-```
-
-Congratulations — you built a local, private, multi-agent executive assistant from
-first principles. Update PROGRESS.md and take the bonus challenges.
+Verified by [`tests/test_0x09.py`](tests/test_0x09.py) — `python checker.py 0x09`

@@ -50,51 +50,11 @@ https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agent
 - Why do these live as functions over a messages list instead of features inside
   the Agent class?
 
-## General requirements
-
-- File: `core/memory.py`. Pure functions — no globals, no I/O except task 1's files.
-- Verify: `python checker.py 0x08`
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. Trim (mandatory)
-**File:** `core/memory.py`
+- [`core/memory.py`](../core/memory.py) — `trim_messages`, `save_session`,
+  `load_session`, `summarize_and_compact`
 
-`trim_messages(messages, max_messages=20)` → a **new** list:
-- if `messages[0]` is a system message: `[system] + last (max_messages - 1) others`
-- otherwise: last `max_messages` messages
-- already short enough → an unchanged copy. Never mutate the input.
-
-```powershell
-python checker.py 0x08 0
-```
-
-### 1. Persist (mandatory)
-**File:** `core/memory.py`
-
-`save_session(path, messages)` — write JSON (UTF-8).
-`load_session(path)` — read it back; **missing file → `[]`** (first launch is not an
-error).
-
-```powershell
-python checker.py 0x08 1
-```
-
-### 2. Summarize & compact (mandatory)
-**File:** `core/memory.py`
-
-`summarize_and_compact(client, model, messages, keep_last=4)`:
-1. Split: system message (if any) / old messages / the last `keep_last` messages.
-2. Send the *old* messages' content to the model: "Summarize this conversation
-   concisely, keeping every fact, name, date and decision."
-3. Return `[system] + [{"role": "system", "content": "Summary of the conversation so
-   far: <summary>"}] + last keep_last messages`.
-
-If there's nothing old to summarize, return a copy unchanged (don't waste a model
-call).
-
-```powershell
-python checker.py 0x08 2
-```
+Verified by [`tests/test_0x08.py`](tests/test_0x08.py) — `python checker.py 0x08`

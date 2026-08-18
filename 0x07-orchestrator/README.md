@@ -59,57 +59,12 @@ https://www.anthropic.com/engineering/built-multi-agent-research-system
 - What is `last_route` for? (Hint: you'll bless it the first time the assistant
   answers a calendar question with your inbox.)
 
-## General requirements
-
-- File: `core/orchestrator.py`. Reuse `strip_thinking` logic from 0x00 (copy it into
-  `core/` — e.g. `core/text.py` — packages shouldn't import task files).
-- Verify: `python checker.py 0x07`
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. The router (mandatory)
-**File:** `core/orchestrator.py`
+- [`core/orchestrator.py`](../core/orchestrator.py) — `strip_think`, `route`
+  (one-word classification with an exact-match fallback), `agent_to_tool`, and the
+  `Orchestrator` that owns the shared conversation transcript
 
-`route(client, model, user_input, routes, default="general")` → one element of
-`routes`:
-- Prompt the model with the user request and the list of route names; ask for
-  **exactly one word** in reply.
-- Clean the reply: strip `<think>` blocks, whitespace, punctuation; lowercase.
-- If the cleaned reply is in `routes` → return it; anything else → return `default`.
-
-```powershell
-python checker.py 0x07 0
-```
-
-### 1. An agent is just a tool (mandatory)
-**File:** `core/orchestrator.py`
-
-`agent_to_tool(agent, name, description)` → returns a `(schema, fn)` pair:
-- `schema`: OpenAI tool format, one required string parameter `request`
-  ("what to ask this agent, in plain language").
-- `fn(request)` → `agent.run(request)`.
-
-Register these pairs on a registry and any `Agent` becomes a coordinator of agents.
-
-```powershell
-python checker.py 0x07 1
-```
-
-### 2. The Orchestrator (mandatory)
-**File:** `core/orchestrator.py`
-
-```python
-class Orchestrator:
-    def __init__(self, client, model, agents, default="general"):
-        # agents: dict name -> Agent, must contain the default
-    def run(self, user_input) -> str: ...
-```
-
-`run()`: route the request over `list(agents)` (task 0), remember the choice in
-`self.last_route`, delegate `user_input` to that agent's `run()`, return its reply.
-
-```powershell
-python checker.py 0x07 2
-```
+Verified by [`tests/test_0x07.py`](tests/test_0x07.py) — `python checker.py 0x07`

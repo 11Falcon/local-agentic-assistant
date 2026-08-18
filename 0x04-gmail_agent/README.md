@@ -61,96 +61,15 @@ rabbit hole that adds nothing to this module.
   inside? (You saw the payoff every time the checker ran offline.)
 - Why does the agent get a create-draft tool but no send tool?
 
-## Before the tasks (real-account setup — one time)
-
-1. https://console.cloud.google.com → create/select a project → enable **Gmail API**.
-2. OAuth consent screen → External → add yourself as test user.
-3. Credentials → Create credentials → **OAuth client ID** → Desktop app → download
-   as `credentials.json` into the **course root**. (You did this once before for your
-   gmail-agent project — same dance.)
-
-## General requirements
-
-- New package: `agents/` at the course root (`agents/__init__.py` + `agents/gmail_agent.py`).
-- All functions take `service` as first parameter; nothing network-y runs at import time.
-- Verify: `python checker.py 0x04` (fully offline — fakes provided).
-
 ---
 
-## Tasks
+## What this module produced
 
-### 0. Authentication (mandatory)
-**Files:** `agents/__init__.py`, `agents/gmail_agent.py`
+- [`agents/gmail_agent.py`](../agents/gmail_agent.py) — OAuth, then `list_recent`,
+  `search_messages`, `read_email`, `create_draft`, and `build_gmail_registry` that
+  exposes them as tools
 
-In `agents/gmail_agent.py` define:
-- `SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]`
-- `get_gmail_service(credentials_path="credentials.json", token_path="token.json")` —
-  the standard quickstart flow: reuse `token.json` if valid, refresh if expired,
-  otherwise run `InstalledAppFlow` and save the token. Returns
-  `build("gmail", "v1", credentials=creds)`.
+Drafting never sends. Every write goes through the confirmation gate in
+[`assistant.py`](../assistant.py).
 
-Prove it works for real: `python -c "from agents.gmail_agent import *; get_gmail_service()"`
-
-```powershell
-python checker.py 0x04 0
-```
-
-### 1. Read the inbox (mandatory)
-**File:** `agents/gmail_agent.py`
-
-`list_recent(service, max_results=5)` → list of dicts
-`{"id", "from", "subject", "snippet"}`, using `list` then `get` per message
-(`format="metadata"`). Write a small header-lookup helper — you'll reuse it.
-
-```powershell
-python checker.py 0x04 1
-```
-
-### 2. Search (mandatory)
-**File:** `agents/gmail_agent.py`
-
-`search_messages(service, query, max_results=10)` → same shape as task 1, but passes
-`q=query` to `list`.
-
-```powershell
-python checker.py 0x04 2
-```
-
-### 3. Draft, don't send (mandatory)
-**File:** `agents/gmail_agent.py`
-
-`create_draft(service, to, subject, body)` → builds an `EmailMessage`, sets
-`To`/`Subject`/content, base64url-encodes it, calls `drafts().create` with
-`body={"message": {"raw": raw}}`, returns the draft **id** (a string).
-
-```powershell
-python checker.py 0x04 3
-```
-
-### 4. Email as tools (mandatory)
-**File:** `agents/gmail_agent.py`
-
-`build_gmail_registry(service)` → a `core.tools.ToolRegistry` with three tools
-(the closures capture `service` — the model never sees it):
-
-| tool name | parameters | behavior |
-|---|---|---|
-| `search_email` | `query: str` | search_messages → readable string (from/subject/snippet per line) |
-| `read_email` | `message_id: str` | one message's From, Subject and snippet as a string |
-| `create_draft` | `to, subject, body: str` | task 3; returns confirmation with the draft id |
-
-Write sharp descriptions — mention Gmail query syntax in `search_email`'s description
-so the model uses `from:`/`is:unread` properly.
-
-Then try it for real (not checked):
-```python
-from core.agent import Agent
-from agents.gmail_agent import get_gmail_service, build_gmail_registry
-agent = Agent("gmail", "You are an email assistant. Use tools; never invent emails.",
-              registry=build_gmail_registry(get_gmail_service()))
-print(agent.run("Any unread emails from the last 2 days? Summarize them."))
-```
-
-```powershell
-python checker.py 0x04 4
-```
+Verified by [`tests/test_0x04.py`](tests/test_0x04.py) — `python checker.py 0x04`

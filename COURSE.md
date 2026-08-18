@@ -1,75 +1,55 @@
-# The course this was built from
+# How this was built
 
-An ALX-style, project-based course. You learn a concept, read the resources, then
-complete numbered tasks with **exact file and function names**. A checker verifies
-every task with automated tests — a task is not done until the checker is green.
+This assistant wasn't written in one go. It came out of ten modules, each one
+adding a single layer and each one verified by automated tests before the next
+began. The module folders are still here — concepts, resources, and a pointer to
+the code each one produced.
 
-Every line of `core/` and `agents/` in this repository was written by working
-through these ten modules.
+## The layers
 
-## How it works
+| Module | Subject | Produced |
+|--------|---------|----------|
+| [0x00](0x00-environment_setup/README.md) | Environment & first tokens | Talking to Qwen 3 through Ollama, streaming, stripping `<think>` |
+| [0x01](0x01-prompting_and_structured_output/README.md) | Prompting & structured output | Reliable JSON from an LLM, Pydantic validation, retry-with-feedback |
+| [0x02](0x02-tool_calling/README.md) | Tool calling | Tool schemas, an AST calculator, the registry, the execution loop |
+| [0x03](0x03-agent_core/README.md) | The agent core | `core/llm.py`, `core/tools.py`, `core/agent.py` |
+| [0x04](0x04-gmail_agent/README.md) | Gmail agent | `agents/gmail_agent.py` — OAuth, list, search, read, draft |
+| [0x05](0x05-calendar_agent/README.md) | Calendar agent | `agents/calendar_agent.py` — events, creation, free-slot finder |
+| [0x06](0x06-rag_agent/README.md) | RAG, naive → advanced | `core/rag.py`, `agents/notes_agent.py` — BM25, RRF, LLM reranking |
+| [0x07](0x07-orchestrator/README.md) | Orchestration | `core/orchestrator.py` — routing and the shared transcript |
+| [0x08](0x08-memory/README.md) | Memory | `core/memory.py` — trimming, persistence, compaction |
+| [0x09](0x09-final_project/README.md) | The assembly | `assistant.py` — composition root, confirmation gate, CLI |
+| [0x0A](0x0A-slack_agent/README.md) | *Optional:* Slack agent | Not implemented — the notes agent took its place |
 
-1. Each module `0xNN-*` has a `README.md` with:
-   - **Concepts** — the explanation you need before coding
-   - **Read or watch** — curated links, time-boxed
-   - **Tasks** — numbered, each specifying an exact file name and function signature
-2. You write the code. File names, function names, and signatures **must match the
-   spec exactly** — the checker imports your code by those names.
-3. You verify with the checker:
+## Verification
+
+Every layer has tests, and they run **offline**. Fake LLM, Gmail and Calendar
+clients stand in for the real services, so routing, tool selection and tool
+execution are all verified without a model, a network, or credentials.
 
 ```powershell
-python checker.py 0x00        # check the whole module
-python checker.py 0x00 2      # check only task 2
-python checker.py 0x00 --integration   # also run live tests (needs Ollama running)
 python checker.py all         # everything
+python checker.py 0x06        # one layer
+python checker.py 0x06 7      # one piece of it
+python checker.py all --integration   # also hit the live model
 ```
 
-Most checks run **offline** using fake Gmail/Calendar/LLM clients, so the logic can
-be verified without credentials or a running model. Tests marked `integration` talk
-to the real local model and are skipped unless you pass `--integration`.
+`course_kit.py` holds the fakes. `checker.py` is a thin wrapper over pytest.
 
-### How to study a module (in this order — it matters)
+## Principles the tests enforce
 
-1. Read the module's **Concepts** section. That IS the lesson. (10–15 min)
-2. Do only the "before the tasks" reading — each module caps it explicitly.
-3. **Start task 0 immediately.** The learning happens against the checker, not in
-   the docs.
-4. Blocked? Open the reference link the task points to, search it for your
-   *specific* question, close it once answered.
-5. **Hard rule: never more than 30 minutes of reading before you write code.**
-6. Before moving on, answer the module's "without Google" questions out loud.
+**Dependency injection everywhere.** Any function that talks to an external
+service receives its client as a parameter, defaulting to the real one. That
+single rule is what makes an offline test of the whole stack possible — and it's
+why swapping Ollama for vLLM is an environment variable rather than a refactor.
 
-**Do not edit anything inside `*/tests/`, `course_kit.py`, or `checker.py`** — that's
-the grading machinery.
+**No side effects at import time.** Importing a module never triggers a network
+call or an OAuth flow. `0x09` tests this explicitly.
 
-## Curriculum
+**Tools return errors, they don't raise.** `ToolRegistry.execute` catches
+everything and hands the model a string. The model isn't in the call stack, so it
+can't catch an exception — but it can read an error and adapt.
 
-| Module | Project | Built |
-|--------|---------|-------|
-| [0x00](0x00-environment_setup/README.md) | Environment setup & first tokens | Talking to Qwen 3 locally through Ollama |
-| [0x01](0x01-prompting_and_structured_output/README.md) | Prompting & structured output | Reliable JSON out of an LLM, validation, retries |
-| [0x02](0x02-tool_calling/README.md) | Tool calling | Tool schemas, a tool registry, the tool-execution loop |
-| [0x03](0x03-agent_core/README.md) | The agent core | A reusable `Agent` class in a real package (`core/`) |
-| [0x04](0x04-gmail_agent/README.md) | Gmail agent | OAuth + email tools (list, search, read, draft) |
-| [0x05](0x05-calendar_agent/README.md) | Calendar agent | Events, event creation, a free-slot finder |
-| [0x06](0x06-rag_agent/README.md) | RAG & the notes agent | Chunking, embeddings, BM25, RRF, LLM reranking |
-| [0x07](0x07-orchestrator/README.md) | Orchestration | A router + multi-agent delegation |
-| [0x08](0x08-memory/README.md) | Memory | History trimming, summarization, persistence |
-| [0x09](0x09-final_project/README.md) | **Final project** | The full executive assistant, end to end |
-| [0x0A](0x0A-slack_agent/README.md) | *Optional bonus:* Slack agent | Post & read Slack as agent tools |
-
-`0x0A` is optional — it isn't part of `checker.py all`, and the final project
-doesn't require it.
-
-Progress tracked in [PROGRESS.md](PROGRESS.md).
-
-## Working rules the course enforces
-
-- Python **3.11**, run everything from the repository root.
-- Exact names matter: `0-check_env.py` is not `0_check_env.py`.
-- **Dependency injection everywhere**: any function that talks to an external
-  service (LLM, Gmail, Calendar) receives its client as a parameter. This is what
-  makes the code testable offline — and it's how production agent code is written.
-- Importing a module must never trigger a network call or an OAuth flow. Side
-  effects happen when functions are called, not at import time.
-- Never commit `credentials.json`, `token.json`, or `.env`.
+**A missing capability disables one agent, not the app.** `build_assistant` takes
+each service as an optional parameter; absent means that specialist simply isn't
+built.
