@@ -32,7 +32,7 @@ def build_assistant(client = None, model = None, gmail_service = None, calendar_
 
     if notes_store is not None:
         from agents.notes_agent import build_notes_registry
-        agents["notes"] = Agent("calendar", NOTES_PROMPT, registry=build_notes_registry(notes_store, client=client), client=client, model = model)
+        agents["notes"] = Agent("notes", NOTES_PROMPT, registry=build_notes_registry(notes_store, client=client), client=client, model = model)
 
     # Always on: no credentials, no server, nothing that can fail at setup - so
     # unlike the others it needs no try_service() guard.
