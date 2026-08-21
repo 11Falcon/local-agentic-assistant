@@ -1,12 +1,5 @@
 # RAG: naive → advanced
 
-Tasks **0–4** build the naive pipeline (chunk → embed → cosine → top-k). Tasks
-**5–8** turn it into what production systems actually run: **hybrid retrieval** plus
-**two-stage reranking**. If you've built naive RAG before, sprint through 0–4 (you
-still need the code — everything after it builds on that `VectorStore`) and spend
-your time on 5–8.
-
-
 ## Concepts
 
 **The problem.** Your model knows what was in its training data. It does **not** know
