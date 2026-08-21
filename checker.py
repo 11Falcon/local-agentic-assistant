@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""ALX-style task checker for the Agentic AI course.
+"""Test runner for the modules this assistant was built from.
 
 Usage:
-    python checker.py                    list the modules
-    python checker.py 0x02               run every check for module 0x02
-    python checker.py 0x02 3             run only task 3 of module 0x02
-    python checker.py 0x02 --integration also run live tests (needs Ollama running)
-    python checker.py all                run every module's checks
+    python checker.py                         list the modules
+    python checker.py tool_calling            run every check for one module
+    python checker.py tool_calling 3          run only task 3 of that module
+    python checker.py tool_calling --integration  also run live tests (needs Ollama)
+    python checker.py all                     run every module's checks
 """
 import subprocess
 import sys
@@ -14,22 +14,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-MODULES = {
-    "0x00": "0x00-environment_setup",
-    "0x01": "0x01-prompting_and_structured_output",
-    "0x02": "0x02-tool_calling",
-    "0x03": "0x03-agent_core",
-    "0x04": "0x04-gmail_agent",
-    "0x05": "0x05-calendar_agent",
-    "0x06": "0x06-rag_agent",
-    "0x07": "0x07-orchestrator",
-    "0x08": "0x08-memory",
-    "0x09": "0x09-final_project",
-    "0x0A": "0x0A-slack_agent",   # optional bonus module
-}
+# In build order, not alphabetical - each one builds on the previous.
+MODULES = [
+    "environment_setup",
+    "prompting_and_structured_output",
+    "tool_calling",
+    "agent_core",
+    "gmail_agent",
+    "calendar_agent",
+    "rag_agent",
+    "orchestrator",
+    "memory",
+    "final_project",
+    "slack_agent",   # optional bonus module
+]
 
-# Not part of "checker.py all" - run them explicitly if you want them.
-OPTIONAL = {"0x0A"}
+# Not part of "checker.py all" - run it explicitly if you want it.
+OPTIONAL = {"slack_agent"}
 
 
 def main() -> int:
@@ -40,17 +41,17 @@ def main() -> int:
     if not argv:
         print(__doc__)
         print("Modules:")
-        for key, folder in MODULES.items():
-            tag = "  (optional)" if key in OPTIONAL else ""
-            print(f"  {key}  {folder}{tag}")
+        for folder in MODULES:
+            tag = "  (optional)" if folder in OPTIONAL else ""
+            print(f"  {folder}{tag}")
         return 0
 
     key = argv[0]
     if key == "all":
-        targets = [ROOT / folder / "tests" for k, folder in MODULES.items()
-                   if k not in OPTIONAL]
+        targets = [ROOT / folder / "tests" for folder in MODULES
+                   if folder not in OPTIONAL]
     elif key in MODULES:
-        targets = [ROOT / MODULES[key] / "tests"]
+        targets = [ROOT / key / "tests"]
     else:
         print(f"Unknown module '{key}'. Valid: {', '.join(MODULES)} or 'all'.")
         return 2

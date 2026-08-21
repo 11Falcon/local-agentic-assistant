@@ -23,7 +23,7 @@ COURSE_ROOT = Path(__file__).resolve().parent
 # --------------------------------------------------------------------------
 
 def load_task(module_dir: str, filename: str):
-    """Import a task file, e.g. load_task('0x00-environment_setup', '1-hello_qwen.py')."""
+    """Import a task file, e.g. load_task('environment_setup', '1-hello_qwen.py')."""
     import pytest
     path = COURSE_ROOT / module_dir / filename
     if not path.exists():

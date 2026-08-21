@@ -149,6 +149,6 @@ exact specs, and a checker that verifies each one. See **[COURSE.md](COURSE.md)*
 core/          agent loop, tool registry, orchestrator, RAG, memory, LLM client
 agents/        gmail, calendar, notes, calculator - tools + registries
 assistant.py   composition root + CLI
-0x00-0x0A/     the course modules, tasks and tests
+*/             the modules it was built from, each with its tests
 checker.py     the grader
 ```

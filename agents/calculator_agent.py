@@ -1,6 +1,6 @@
 """The calculator specialist.
 
-The evaluator is the one from 0x02-tool_calling/1-calculator.py. It lives here
+The evaluator is the one from tool_calling/1-calculator.py. It lives here
 too because that filename ("1-calculator.py") is not importable as a module, and
 only the checker is allowed to reach into the task folders.
 """

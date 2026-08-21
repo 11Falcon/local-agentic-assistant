@@ -9,17 +9,17 @@ the code each one produced.
 
 | Module | Subject | Produced |
 |--------|---------|----------|
-| [0x00](0x00-environment_setup/README.md) | Environment & first tokens | Talking to Qwen 3 through Ollama, streaming, stripping `<think>` |
-| [0x01](0x01-prompting_and_structured_output/README.md) | Prompting & structured output | Reliable JSON from an LLM, Pydantic validation, retry-with-feedback |
-| [0x02](0x02-tool_calling/README.md) | Tool calling | Tool schemas, an AST calculator, the registry, the execution loop |
-| [0x03](0x03-agent_core/README.md) | The agent core | `core/llm.py`, `core/tools.py`, `core/agent.py` |
-| [0x04](0x04-gmail_agent/README.md) | Gmail agent | `agents/gmail_agent.py` — OAuth, list, search, read, draft |
-| [0x05](0x05-calendar_agent/README.md) | Calendar agent | `agents/calendar_agent.py` — events, creation, free-slot finder |
-| [0x06](0x06-rag_agent/README.md) | RAG, naive → advanced | `core/rag.py`, `agents/notes_agent.py` — BM25, RRF, LLM reranking |
-| [0x07](0x07-orchestrator/README.md) | Orchestration | `core/orchestrator.py` — routing and the shared transcript |
-| [0x08](0x08-memory/README.md) | Memory | `core/memory.py` — trimming, persistence, compaction |
-| [0x09](0x09-final_project/README.md) | The assembly | `assistant.py` — composition root, confirmation gate, CLI |
-| [0x0A](0x0A-slack_agent/README.md) | *Optional:* Slack agent | Not implemented — the notes agent took its place |
+| [environment_setup](environment_setup/README.md) | Environment & first tokens | Talking to Qwen 3 through Ollama, streaming, stripping `<think>` |
+| [prompting_and_structured_output](prompting_and_structured_output/README.md) | Prompting & structured output | Reliable JSON from an LLM, Pydantic validation, retry-with-feedback |
+| [tool_calling](tool_calling/README.md) | Tool calling | Tool schemas, an AST calculator, the registry, the execution loop |
+| [agent_core](agent_core/README.md) | The agent core | `core/llm.py`, `core/tools.py`, `core/agent.py` |
+| [gmail_agent](gmail_agent/README.md) | Gmail agent | `agents/gmail_agent.py` — OAuth, list, search, read, draft |
+| [calendar_agent](calendar_agent/README.md) | Calendar agent | `agents/calendar_agent.py` — events, creation, free-slot finder |
+| [rag_agent](rag_agent/README.md) | RAG, naive → advanced | `core/rag.py`, `agents/notes_agent.py` — BM25, RRF, LLM reranking |
+| [orchestrator](orchestrator/README.md) | Orchestration | `core/orchestrator.py` — routing and the shared transcript |
+| [memory](memory/README.md) | Memory | `core/memory.py` — trimming, persistence, compaction |
+| [final_project](final_project/README.md) | The assembly | `assistant.py` — composition root, confirmation gate, CLI |
+| [slack_agent](slack_agent/README.md) | *Optional:* Slack agent | Not implemented — the notes agent took its place |
 
 ## Verification
 
@@ -29,8 +29,8 @@ execution are all verified without a model, a network, or credentials.
 
 ```powershell
 python checker.py all         # everything
-python checker.py 0x06        # one layer
-python checker.py 0x06 7      # one piece of it
+python checker.py rag_agent   # one layer
+python checker.py rag_agent 7 # one piece of it
 python checker.py all --integration   # also hit the live model
 ```
 
@@ -44,7 +44,7 @@ single rule is what makes an offline test of the whole stack possible — and it
 why swapping Ollama for vLLM is an environment variable rather than a refactor.
 
 **No side effects at import time.** Importing a module never triggers a network
-call or an OAuth flow. `0x09` tests this explicitly.
+call or an OAuth flow. `final_project` tests this explicitly.
 
 **Tools return errors, they don't raise.** `ToolRegistry.execute` catches
 everything and hands the model a string. The model isn't in the call stack, so it
